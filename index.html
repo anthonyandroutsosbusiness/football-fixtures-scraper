@@ -1,38 +1,121 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Better Football Weekly Data</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Better Football Weekly Data</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        h1 { color: #333; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+            margin-bottom: 5px;
+        }
+        h2 {
+            color: #343a40;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+        }
+        p.status {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            background-color: #fff;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .error-message {
+            color: #dc3545;
+            padding: 10px;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
-    <h1>Better Football Weekly Data</h1>
-    <p>Data is pulled automatically every Sunday by GitHub. <br>
-    Last updated: <span id="last-run">Loading...</span></p>
-    
-    <h2>Alex Moore 7-a-side Standings</h2>
-    <div id="standings-output">Loading standings data...</div>
+    <div class="container">
+        <h1>Better Football Weekly Data</h1>
+        <p class="status">Data is pulled automatically every Sunday by GitHub.</p>
+        <p class="status">Last updated: <span id="last-run">Loading date...</span></p>
 
-    <hr>
-    
-    <h2>Saturday 11s Men's Fixtures (This Week)</h2>
-    <div id="sat-fixtures-output">Loading Saturday fixtures...</div>
-    
-    <h2>Sunday 11s Fixtures (This Week)</h2>
-    <div id="sun-fixtures-output">Loading Sunday fixtures...</div>
-    
+        <hr>
+
+        <!-- STANDINGS OUTPUT -->
+        <h2>Alex Moore 7-a-side Standings (2025/26)</h2>
+        <div id="standings-output">Loading standings...</div>
+
+        <hr>
+
+        <!-- FIXTURES OUTPUTS (This is where the new containers go) -->
+        
+        <h2>Saturday 11s Men's Fixtures (2025/26)</h2>
+        <div id="sat-fixtures-output">Loading Saturday fixtures...</div>
+        
+        <h2>Sunday 11s Fixtures (2025/26)</h2>
+        <div id="sun-fixtures-output">Loading Sunday fixtures...</div>
+        
+        <h2>Alex Moore 7-a-side Fixtures (2025/26)</h2>
+        <div id="alex-fixtures-output">Loading Alex Moore fixtures...</div>
+        
+        <h2>Boyd Wilson Mon/Wed Fixtures (2025/26)</h2>
+        <div id="boyd-fixtures-output">Loading Boyd Wilson fixtures...</div>
+
+        <h2>Te Whaea 5-a-side Fixtures (2025/26)</h2>
+        <div id="whaea-fixtures-output">Loading Te Whaea fixtures...</div>
+        
+        <!-- You mentioned 5aside Indoor at the Hub, let's include a container for that too! -->
+        <h2>5-a-side Indoor at the Hub - Summer Edition (2026)</h2>
+        <div id="hub-fixtures-output">Loading Indoor Hub fixtures...</div>
+
+    </div>
+
+    <!-- The JavaScript section must come AFTER the HTML elements it targets -->
     <script>
-        // (Keep the loadData and loadLastRun functions exactly as they were.)
         async function loadData(filename, elementId) {
             try {
                 // Fetch the JSON file created by the scraper
                 const response = await fetch('data/' + filename); 
+                
+                // If the file doesn't exist (404), throw an error for the catch block
+                if (!response.ok) {
+                    throw new Error(`File not yet created by scraper.`);
+                }
+                
                 const data = await response.json();
                 
                 if (data.length === 0) {
@@ -45,6 +128,7 @@
                 const headers = Object.keys(data[0]);
                 
                 headers.forEach(header => {
+                    // Clean up header names for display (e.g., team_name -> Team Name)
                     const cleanHeader = header.replace(/_/g, ' ').toUpperCase(); 
                     html += `<th>${cleanHeader}</th>`;
                 });
@@ -62,8 +146,9 @@
                 document.getElementById(elementId).innerHTML = html;
 
             } catch (error) {
-                document.getElementById(elementId).innerHTML = 'Error loading or parsing data.';
-                console.error('Error:', error);
+                // Show a user-friendly message if data is missing or fetching failed
+                document.getElementById(elementId).innerHTML = '<div class="error-message">No fixtures available yet, check back after the first scrape next season.</div>';
+                console.error(`Error loading ${filename}:`, error);
             }
         }
         
@@ -74,23 +159,28 @@
                 const lastRunMatch = logText.match(/Last scrape completed: (.*)/);
                 if (lastRunMatch) {
                     document.getElementById('last-run').textContent = new Date(lastRunMatch[1]).toLocaleString();
+                } else {
+                    document.getElementById('last-run').textContent = 'Log file found, but date could not be parsed.';
                 }
             } catch (error) {
                 document.getElementById('last-run').textContent = 'Date not yet available.';
             }
         }
         
-        // EXECUTE ALL LOADS:
+        // EXECUTE ALL LOADS (Names must match the filenames generated by scraper.py)
         loadLastRun();
         
-        // Load Standings (using the original filename)
-        loadData('alex_moore_standings.json', 'standings-output'); 
+        // 1. Standings
+        loadData('alex_moore_standings_2026.json', 'standings-output'); 
 
-        // Load Fixtures (using the new filenames from the scraper)
-        loadData('saturday_11s_mens_fixtures.json', 'sat-fixtures-output');
-        loadData('sunday_11s_fixtures.json', 'sun-fixtures-output');
+        // 2-6. Fixtures
+        loadData('saturday_11s_mens_fixtures_2026.json', 'sat-fixtures-output');
+        loadData('sunday_11s_fixtures_2026.json', 'sun-fixtures-output');
+        loadData('alex_moore_7aside_fixtures_2026.json', 'alex-fixtures-output');
+        loadData('boyd_wilson_mon_wed_fixtures_2026.json', 'boyd-fixtures-output');
+        loadData('te_whaea_5aside_fixtures_2026.json', 'whaea-fixtures-output');
+        loadData('5aside_indoor_at_the_hub_summer_edition.json', 'hub-fixtures-output'); 
 
     </script>
 </body>
-
 </html>
