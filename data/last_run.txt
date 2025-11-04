@@ -1,0 +1,8 @@
+Last scrape completed: 2025-11-04T05:01:46.658121
+{
+    "Saturday_11s_Mens_Fixtures": "ERROR: An error occurred while scraping Saturday_11s_Mens_Fixtures: 410 Client Error: Gone for url: https://websites.mygameday.app:443/comp_info.cgi?a=ROUND&compID=753894&round=2025-11-08&client=1-10023-0-0-0",
+    "Sunday_11s_Fixtures": "ERROR: An error occurred while scraping Sunday_11s_Fixtures: 410 Client Error: Gone for url: https://websites.mygameday.app:443/comp_info.cgi?a=ROUND&compID=753896&round=2025-11-08&client=1-10023-0-0-0",
+    "Alex_Moore_7aside_Fixtures": "ERROR: An error occurred while scraping Alex_Moore_7aside_Fixtures: 410 Client Error: Gone for url: https://websites.mygameday.app:443/comp_info.cgi?a=ROUND&compID=753895&round=2025-11-08&client=1-10023-0-0-0",
+    "Boyd_Wilson_Mon_Fixtures": "ERROR: An error occurred while scraping Boyd_Wilson_Mon_Fixtures: 410 Client Error: Gone for url: https://websites.mygameday.app:443/comp_info.cgi?a=ROUND&compID=753893&round=2025-11-08&client=1-10023-0-0-0",
+    "Alex_Moore_Standings": "ERROR: An error occurred while scraping Alex_Moore_Standings: 410 Client Error: Gone for url: https://websites.mygameday.app:443/comp_info.cgi?a=LADDER&compID=746736&client=1-10023-0-0-0"
+}
