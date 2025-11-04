@@ -12,16 +12,23 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 # Define the unique IDs for each competition and the file name you want
 # You may need to verify these IDs if your leagues change!
 # ----------------------------------------------------------------------
+# ... (lines 1-13 of scraper.py remain the same)
+# ----------------------------------------------------------------------
+# Define the unique IDs for each competition and the file name you want
+# Confirmed IDs for the 2025/2026 season:
 TARGET_COMPETITIONS = {
-    # FIXTURES Pages (a=R)
-    "Saturday_11s_Mens_Fixtures": "753894",
-    "Sunday_11s_Fixtures": "753896",
-    "Alex_Moore_7aside_Fixtures": "753895",
-    "Boyd_Wilson_Mon_Fixtures": "753893",
+    # FIXTURES Pages (a=FIXTURE)
+    "Saturday_11s_Mens_Fixtures_2026": "758001",
+    "Sunday_11s_Fixtures_2026": "758002",
+    "Alex_Moore_7aside_Fixtures_2026": "758003",
+    "Boyd_Wilson_Mon_Wed_Fixtures_2026": "758004",
+    "Te_Whaea_5aside_Fixtures_2026": "758006",
     
-    # STANDINGS Pages (a=LADDER) - Keep one for your index.html
-    "Alex_Moore_Standings": "746736"
+    # STANDINGS Pages (a=LADDER) - Added a relevant standings page
+    "Alex_Moore_Standings_2026": "758005"
 }
+# ----------------------------------------------------------------------
+# ... (rest of scraper.py remains the same)
 # ----------------------------------------------------------------------
 
 def get_fixtures_url(comp_id):
@@ -107,4 +114,5 @@ def scrape_and_save_data():
 if __name__ == "__main__":
     # If the script finishes, it means we must have at least written the log file.
     scrape_and_save_data()
+
 
