@@ -5,9 +5,17 @@ import json
 import os
 from datetime import datetime
 
-BASE_URL = "https://www.betterfootball.co.nz"
-# IMPORTANT: You MUST verify these paths on the live website and adjust them.
-# The pandas.read_html function works best on tables that are NOT loaded by JavaScript.
+BASE_URL = "https://websites.sportstg.com"
+
+# This is the direct link to the external platform (Sportstg/GameDay)
+# which is the true source of the tables.
+TARGET_PAGES = {
+    # This link now points to the STANDINGS for the specific competition ID 
+    "Alex_Moore_Standings": "/comp_info.cgi?a=LADDER&compID=746736&client=1-10023-0-0-0",
+
+    # You will need to find the specific compID for other leagues and add them here!
+}
+# NOTE: You must also change BASE_URL above to "https://websites.sportstg.com"
 TARGET_PAGES = {
     # Example: Fixtures for Saturday 11s Men's
     "Saturday_11s_Fixtures": "/fixtures-and-standings/saturday-11s-men's-fixtures-202526/",
@@ -61,4 +69,5 @@ def scrape_and_save_data():
     print("Scraping finished. Check the 'data' directory for results.")
 
 if __name__ == "__main__":
+
     scrape_and_save_data()
