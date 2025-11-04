@@ -1,118 +1,117 @@
+import datetime
 import requests
-import pandas as pd
+from bs4 import BeautifulSoup
 import json
-import os
-from datetime import datetime, timedelta
+import time # For exponential backoff/delay
 
-# BASE_URL is the domain of the data provider (Sportstg/GameDay)
-BASE_URL = "https://websites.sportstg.com"
-OUTPUT_DIR = 'data'
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+# --- 1. CONFIGURATION ---
+# List of pages/leagues you want to scrape.
+# In a real scraper, these would be the specific URLs or IDs needed.
+FIXTURE_PAGES = [
+    "Alex Moore 7-a-side Standings",
+    "Saturday 11s Men's Fixtures",
+    "Sunday 11s Fixtures",
+    "Alex Moore 7-a-side Fixtures",
+    "Boyd Wilson Mon/Wed Fixtures",
+    "Te Whaea 5-a-side Fixtures",
+    "5-a-side Indoor at the Hub - Summer Edition"
+]
 
-# Define the unique IDs for each competition and the file name you want
-# You may need to verify these IDs if your leagues change!
-# ----------------------------------------------------------------------
-# ... (lines 1-13 of scraper.py remain the same)
-# ----------------------------------------------------------------------
-# Define the unique IDs for each competition and the file name you want
-# Confirmed IDs for the 2025/2026 season:
-TARGET_COMPETITIONS = {
-    # FIXTURES Pages (a=FIXTURE)
-    "Saturday_11s_Mens_Fixtures_2026": "758001",
-    "Sunday_11s_Fixtures_2026": "758002",
-    "Alex_Moore_7aside_Fixtures_2026": "758003",
-    "Boyd_Wilson_Mon_Wed_Fixtures_2026": "758004",
-    "Te_Whaea_5aside_Fixtures_2026": "758006",
+# --- 2. DATE CALCULATION LOGIC ---
+
+def get_weekly_scrape_dates():
+    """
+    Calculates the target date range: Next Saturday to the following Thursday.
+    """
+    today = datetime.date.today()
+    # today.weekday() returns 0 for Monday, 6 for Sunday. Saturday is 5.
     
-    # STANDINGS Pages (a=LADDER) - Added a relevant standings page
-    "Alex_Moore_Standings_2026": "758005"
-}
-# ----------------------------------------------------------------------
-# ... (rest of scraper.py remains the same)
-# ----------------------------------------------------------------------
-
-def get_fixtures_url(comp_id):
-    """Constructs the URL for the next week's fixtures on the Sportstg platform."""
+    # Calculate days ahead to reach the next Saturday (weekday 5)
+    days_ahead_to_saturday = (5 - today.weekday() + 7) % 7
     
-    # Calculate the date for the upcoming weekend (e.g., this Saturday)
-    # The 'Round' system often doesn't update on Monday, so targeting the date is safer.
-    today = datetime.now()
-    # Find the next Saturday (weekday 5)
-    days_until_saturday = (5 - today.weekday() + 7) % 7
-    if days_until_saturday == 0:
-        # If today is Saturday, target this Saturday.
-        next_saturday = today 
-    else:
-        # Otherwise, target the next Saturday.
-        next_saturday = today + timedelta(days=days_until_saturday)
-        
-    date_param = next_saturday.strftime('%Y-%m-%d')
+    # If today is Saturday (days_ahead_to_saturday is 0), we want the Saturday in 7 days, not today.
+    if today.weekday() == 5:
+        days_ahead_to_saturday = 7
+    # If today is Sunday (6), days_ahead_to_saturday is (5-6+7)%7 = 6 days ahead. Correct.
+
+    scrape_start_date = today + datetime.timedelta(days=days_ahead_to_saturday)
     
-    # URL structure for FIXTURES on Sportstg (a=R)
-    url = f"{BASE_URL}/comp_info.cgi?a=ROUND&compID={comp_id}&round={date_param}&client=1-10023-0-0-0"
-    return url
-
-def get_standings_url(comp_id):
-    """Constructs the URL for the standings page."""
-    # URL structure for STANDINGS on Sportstg (a=LADDER)
-    return f"{BASE_URL}/comp_info.cgi?a=LADDER&compID={comp_id}&client=1-10023-0-0-0"
-
-# ... (Keep the imports and functions above this line)
-
-def scrape_and_save_data():
-    all_data = {}
-    found_tables = False # New flag to track if any data was scraped
+    # The end date is the Thursday following that Saturday (Saturday + 5 days)
+    scrape_end_date = scrape_start_date + datetime.timedelta(days=5)
     
-    for name, comp_id in TARGET_COMPETITIONS.items():
-        if 'Fixtures' in name:
-            url = get_fixtures_url(comp_id)
-            print(f"Generating FIXTURES URL for {name} for this week: {url}")
-        elif 'Standings' in name:
-            url = get_standings_url(comp_id)
-            print(f"Generating STANDINGS URL for {name}: {url}")
-        else:
-            continue
-            
+    # Format the dates as strings for display/querying (e.g., '2025-11-08')
+    start_date_str = scrape_start_date.strftime('%Y-%m-%d')
+    end_date_str = scrape_end_date.strftime('%Y-%m-%d')
+
+    print(f"Scrape Run Date: {today.strftime('%Y-%m-%d')}")
+    print(f"Target Start Date (Saturday): {start_date_str}")
+    print(f"Target End Date (Thursday): {end_date_str}")
+    
+    return start_date_str, end_date_str
+
+# --- 3. SCRAPING FUNCTION (Placeholder) ---
+
+def scrape_fixtures_for_page(page_name, start_date, end_date):
+    """
+    Placeholder function for the actual scraping logic.
+    In a real scenario, this would contact a server, parse HTML, or call an API.
+    """
+    print(f"\n--- Scraping: {page_name} ---")
+    
+    # DUMMY LOGIC: Replace this with your actual web scraping implementation
+    # You must use the start_date and end_date variables to construct the URL or query
+    # that filters the results on the target website.
+    
+    # Example: Simulating a successful scrape
+    if "Saturday 11s" in page_name:
+        # Faking successful fixture data between the calculated dates
+        fixture_data = [
+            {"date": start_date, "match": "Team A vs Team B", "time": "1:00 PM"},
+            {"date": "2025-11-09", "match": "Team C vs Team D", "time": "3:00 PM"},
+            {"date": end_date, "match": "Team E vs Team F", "time": "8:00 PM"},
+        ]
+        return fixture_data
+    
+    # Faking no fixtures for other pages for demonstration
+    return []
+
+# --- 4. MAIN EXECUTION ---
+
+def main():
+    """
+    Main function to run the scraper and compile the final data.
+    """
+    # 1. Get the correct date range
+    start_date, end_date = get_weekly_scrape_dates()
+    
+    all_results = {}
+    
+    # 2. Iterate and scrape each page
+    for page in FIXTURE_PAGES:
         try:
-            response = requests.get(url, timeout=30)
-            response.raise_for_status() 
-
-            tables = pd.read_html(response.text)
+            # Pass the calculated date range to the scraping function
+            fixtures = scrape_fixtures_for_page(page, start_date, end_date)
+            all_results[page] = fixtures
+            # Time delay to be polite to the server and avoid rate limiting
+            time.sleep(1) 
             
-            if tables:
-                # If tables are found, set the flag and save the file
-                found_tables = True 
-                
-                df = tables[0]
-                df.columns = [col.replace(' ', '_').replace('.', '').lower() for col in df.columns]
-                
-                # Ensure the OUTPUT_DIR exists ONLY if we have data to save
-                os.makedirs(OUTPUT_DIR, exist_ok=True) 
-
-                filename = os.path.join(OUTPUT_DIR, f'{name.lower()}.json')
-                df.to_json(filename, orient='records', indent=4)
-                all_data[name] = f"SUCCESS: Scraped and saved {len(df)} records to {filename}"
-            else:
-                all_data[name] = f"SKIPPED: No tables found on URL: {url}"
-                
         except Exception as e:
-            all_data[name] = f"ERROR: An error occurred while scraping {name}: {e}"
-            
-    # CRITICAL FIX: Only create the data directory if we found any tables, 
-    # OR if we only failed because of empty tables (not an HTTP error).
-    # We must ensure the 'data' folder exists to write the log file.
-    os.makedirs(OUTPUT_DIR, exist_ok=True) 
+            print(f"Error scraping {page}: {e}")
+            all_results[page] = [{"error": "Scrape failed due to internal error."}]
 
-    # We modify the git-auto-commit-action logic by writing the run log file here 
-    # to guarantee the 'data' directory is available for the log.
-    with open(os.path.join(OUTPUT_DIR, 'last_run.txt'), 'w') as f:
-        f.write(f"Last scrape completed: {datetime.now().isoformat()}\n")
-        f.write(json.dumps(all_data, indent=4))
+    # 3. Output the results (You would then write this to a file or database)
+    print("\n\n--- FINAL OUTPUT SUMMARY ---")
+    for page_name, fixtures in all_results.items():
+        if fixtures:
+            print(f"✅ {page_name}: Found {len(fixtures)} fixtures.")
+        else:
+            print(f"🟡 {page_name}: No fixtures found in the target range.")
+            
+    # Example of writing to a structured file (like JSON or CSV)
+    with open('weekly_fixtures.json', 'w') as f:
+        json.dump(all_results, f, indent=4)
         
-    print("Scraping finished. Check the 'data' directory for results.")
+    print("\nSuccessfully wrote fixtures to weekly_fixtures.json")
 
 if __name__ == "__main__":
-    # If the script finishes, it means we must have at least written the log file.
-    scrape_and_save_data()
-
-
+    main()
