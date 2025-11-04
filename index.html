@@ -12,23 +12,31 @@
     </style>
 </head>
 <body>
-    <h1>Better Football Weekly Standings</h1>
+    <h1>Better Football Weekly Data</h1>
     <p>Data is pulled automatically every Sunday by GitHub. <br>
     Last updated: <span id="last-run">Loading...</span></p>
     
-    <h2>Alex Moore 7-a-side Standings (Example)</h2>
+    <h2>Alex Moore 7-a-side Standings</h2>
     <div id="standings-output">Loading standings data...</div>
 
+    <hr>
+    
+    <h2>Saturday 11s Men's Fixtures (This Week)</h2>
+    <div id="sat-fixtures-output">Loading Saturday fixtures...</div>
+    
+    <h2>Sunday 11s Fixtures (This Week)</h2>
+    <div id="sun-fixtures-output">Loading Sunday fixtures...</div>
+    
     <script>
-        // Function to load and display data from the JSON file
+        // (Keep the loadData and loadLastRun functions exactly as they were.)
         async function loadData(filename, elementId) {
             try {
-                // The script looks for the JSON file saved in the 'data' folder
+                // Fetch the JSON file created by the scraper
                 const response = await fetch('data/' + filename); 
                 const data = await response.json();
                 
                 if (data.length === 0) {
-                    document.getElementById(elementId).innerHTML = "No data found.";
+                    document.getElementById(elementId).innerHTML = "No data found (or week not yet scheduled).";
                     return;
                 }
 
@@ -59,7 +67,6 @@
             }
         }
         
-        // Function to load the last run time from the log file
         async function loadLastRun() {
             try {
                 const logResponse = await fetch('data/last_run.txt');
@@ -69,14 +76,21 @@
                     document.getElementById('last-run').textContent = new Date(lastRunMatch[1]).toLocaleString();
                 }
             } catch (error) {
-                document.getElementById('last-run').textContent = 'Date not yet available. Run the GitHub Action once to populate the data.';
+                document.getElementById('last-run').textContent = 'Date not yet available.';
             }
         }
         
-        // EXECUTE: Run the functions when the page loads
+        // EXECUTE ALL LOADS:
         loadLastRun();
-        // This line tells the page to load the data we are scraping:
+        
+        // Load Standings (using the original filename)
         loadData('alex_moore_standings.json', 'standings-output'); 
+
+        // Load Fixtures (using the new filenames from the scraper)
+        loadData('saturday_11s_mens_fixtures.json', 'sat-fixtures-output');
+        loadData('sunday_11s_fixtures.json', 'sun-fixtures-output');
+
     </script>
 </body>
+
 </html>
