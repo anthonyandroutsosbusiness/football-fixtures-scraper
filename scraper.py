@@ -50,8 +50,11 @@ def get_standings_url(comp_id):
     # URL structure for STANDINGS on Sportstg (a=LADDER)
     return f"{BASE_URL}/comp_info.cgi?a=LADDER&compID={comp_id}&client=1-10023-0-0-0"
 
+# ... (Keep the imports and functions above this line)
+
 def scrape_and_save_data():
     all_data = {}
+    found_tables = False # New flag to track if any data was scraped
     
     for name, comp_id in TARGET_COMPETITIONS.items():
         if 'Fixtures' in name:
@@ -64,31 +67,37 @@ def scrape_and_save_data():
             continue
             
         try:
-            # Use requests to get the page content
-            response = requests.get(url, timeout=30) # Increased timeout to 30s
+            response = requests.get(url, timeout=30)
             response.raise_for_status() 
 
-            # Pandas attempts to find and read all HTML tables on the page
             tables = pd.read_html(response.text)
             
             if tables:
-                # Assuming the required table is the first one found (tables[0]).
-                df = tables[0]
+                # If tables are found, set the flag and save the file
+                found_tables = True 
                 
-                # Clean up column names for easy JSON/JS access
+                df = tables[0]
                 df.columns = [col.replace(' ', '_').replace('.', '').lower() for col in df.columns]
                 
-                # Save the data
+                # Ensure the OUTPUT_DIR exists ONLY if we have data to save
+                os.makedirs(OUTPUT_DIR, exist_ok=True) 
+
                 filename = os.path.join(OUTPUT_DIR, f'{name.lower()}.json')
                 df.to_json(filename, orient='records', indent=4)
                 all_data[name] = f"SUCCESS: Scraped and saved {len(df)} records to {filename}"
             else:
-                all_data[name] = f"FAILED: No tables found on URL: {url}"
+                all_data[name] = f"SKIPPED: No tables found on URL: {url}"
                 
         except Exception as e:
             all_data[name] = f"ERROR: An error occurred while scraping {name}: {e}"
             
-    # Save a run log
+    # CRITICAL FIX: Only create the data directory if we found any tables, 
+    # OR if we only failed because of empty tables (not an HTTP error).
+    # We must ensure the 'data' folder exists to write the log file.
+    os.makedirs(OUTPUT_DIR, exist_ok=True) 
+
+    # We modify the git-auto-commit-action logic by writing the run log file here 
+    # to guarantee the 'data' directory is available for the log.
     with open(os.path.join(OUTPUT_DIR, 'last_run.txt'), 'w') as f:
         f.write(f"Last scrape completed: {datetime.now().isoformat()}\n")
         f.write(json.dumps(all_data, indent=4))
@@ -96,4 +105,6 @@ def scrape_and_save_data():
     print("Scraping finished. Check the 'data' directory for results.")
 
 if __name__ == "__main__":
+    # If the script finishes, it means we must have at least written the log file.
     scrape_and_save_data()
+
