@@ -25,10 +25,13 @@ jobs:
       - name: Run Scraper
         run: python scraper.py
 
-      - name: Commit files
+     - name: Commit files
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Automated: Update weekly league data"
-          file_pattern: 'data/*.json data/last_run.txt' 
+          # KEY FIX: This simpler pattern tells git to add everything in 'data/', 
+          # which includes 'last_run.txt', but allows the action to gracefully skip 
+          # committing JSON files if they don't exist.
+          file_pattern: 'data/*' 
           commit_user_name: 'GitHub Actions Bot'
           commit_user_email: 'github-actions[bot]@users.noreply.github.com'
