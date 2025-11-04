@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Better Football Weekly Data</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Better Football Weekly Standings</h1>
+    <p>Data is pulled automatically every Sunday by GitHub. <br>
+    Last updated: <span id="last-run">Loading...</span></p>
+    
+    <h2>Alex Moore 7-a-side Standings (Example)</h2>
+    <div id="standings-output">Loading standings data...</div>
+
+    <script>
+        // Function to load and display data from the JSON file
+        async function loadData(filename, elementId) {
+            try {
+                // The script looks for the JSON file saved in the 'data' folder
+                const response = await fetch('data/' + filename); 
+                const data = await response.json();
+                
+                if (data.length === 0) {
+                    document.getElementById(elementId).innerHTML = "No data found.";
+                    return;
+                }
+
+                // Building the HTML table
+                let html = '<table><thead><tr>';
+                const headers = Object.keys(data[0]);
+                
+                headers.forEach(header => {
+                    const cleanHeader = header.replace(/_/g, ' ').toUpperCase(); 
+                    html += `<th>${cleanHeader}</th>`;
+                });
+                html += '</tr></thead><tbody>';
+
+                data.forEach(row => {
+                    html += '<tr>';
+                    headers.forEach(header => {
+                        html += `<td>${row[header]}</td>`;
+                    });
+                    html += '</tr>';
+                });
+
+                html += '</tbody></table>';
+                document.getElementById(elementId).innerHTML = html;
+
+            } catch (error) {
+                document.getElementById(elementId).innerHTML = 'Error loading or parsing data.';
+                console.error('Error:', error);
+            }
+        }
+        
+        // Function to load the last run time from the log file
+        async function loadLastRun() {
+            try {
+                const logResponse = await fetch('data/last_run.txt');
+                const logText = await logResponse.text();
+                const lastRunMatch = logText.match(/Last scrape completed: (.*)/);
+                if (lastRunMatch) {
+                    document.getElementById('last-run').textContent = new Date(lastRunMatch[1]).toLocaleString();
+                }
+            } catch (error) {
+                document.getElementById('last-run').textContent = 'Date not yet available. Run the GitHub Action once to populate the data.';
+            }
+        }
+        
+        // EXECUTE: Run the functions when the page loads
+        loadLastRun();
+        // This line tells the page to load the data we are scraping:
+        loadData('alex_moore_standings.json', 'standings-output'); 
+    </script>
+</body>
+</html>

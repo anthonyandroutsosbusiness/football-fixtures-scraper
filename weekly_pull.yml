@@ -1,0 +1,43 @@
+name: Weekly Data Scrape and Update
+
+on:
+  # Schedule: This runs the script every Sunday at 00:00 UTC
+  schedule:
+    - cron: '0 0 * * 0'
+  # Dispatch: This creates a button on the GitHub Actions page to run it manually
+  workflow_dispatch:
+
+jobs:
+  scrape_and_commit:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Get the files from the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Fetch full history so we can commit the new data later
+          fetch-depth: 0 
+
+      # 2. Set up the Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      # 3. Install the tools listed in requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+        
+      # 4. Run your scraper.py script
+      - name: Run Scraper
+        run: python scraper.py
+
+      # 5. Commit the new data (JSON files) and push it back
+      - name: Commit files
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Automated: Update weekly league data"
+          # Files to commit: any .json file in 'data' and the log file
+          file_pattern: 'data/*.json data/last_run.txt' 
+          commit_user_name: 'GitHub Actions Bot'
+          commit_user_email: 'github-actions[bot]@users.noreply.github.com'
